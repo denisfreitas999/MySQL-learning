@@ -167,3 +167,28 @@ SELECT YEAR(data_inicio) AS ano, MONTH(data_inicio) AS mes, COUNT(*) AS total_al
 -- ########################################################
 -- $$$$$$$$$$$$$$$$$$$$$$$ ETAPA 05 $$$$$$$$$$$$$$$$$$$$$$$
 -- ########################################################
+-- Adicionando coluna a uma tabela
+ALTER TABLE proprietarios ADD COLUMN qtd_hospedagens INT;
+
+-- Renomeando uma tabela
+ALTER TABLE alugueis RENAME TO reservas;
+
+-- Renomeando uma coluna
+ALTER TABLE reservas RENAME COLUMN aluguel_id TO reserva_id;
+
+-- Atualizando dados
+UPDATE hospedagens SET ativo = 1 WHERE hospedagem_id IN ('1', '10', '100');
+SELECT * FROM hospedagens WHERE hospedagem_id IN ('1', '10', '100');
+
+UPDATE proprietarios SET contato = 'daniela_glubglub@example.com' WHERE proprietario_id = '1009';
+SELECT * FROM proprietarios WHERE proprietario_id = '1009';
+
+-- Deletando dados
+DELETE FROM avaliacoes
+	WHERE hospedagem_id IN ('10000', '1001');
+
+DELETE FROM reservas
+	WHERE hospedagem_id IN ('10000', '1001');
+    
+DELETE FROM hospedagens
+	WHERE hospedagem_id IN ('10000', '1001');
