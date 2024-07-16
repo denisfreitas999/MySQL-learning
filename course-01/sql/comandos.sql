@@ -98,3 +98,68 @@ SELECT * FROM insight_places.proprietarios;
 -- ########################################################
 
 -- Conhecendo o modelo físico das tabelas EER
+
+-- ########################################################
+-- $$$$$$$$$$$$$$$$$$$$$$$ ETAPA 04 $$$$$$$$$$$$$$$$$$$$$$$
+-- ########################################################
+
+-- Buscando avalações com notas maior ou igual que 4
+SELECT * FROM avaliacoes WHERE nota >= 4;
+
+-- Busque as hospedagens do tipo hotel que estão ativas
+SELECT * FROM hospedagens WHERE tipo LIKE 'hotel' AND ativo = 1;
+
+-- A primeira demanda que a empresa nos trouxe é que gostaria de saber o ticket médio, ou seja, 
+-- quanto cada pessoa usuária gasta na plataforma com os aluguéis, com as reservas das hospedagens.
+SELECT cliente_id, AVG(preco_total) AS ticket_medio FROM alugueis
+	GROUP BY cliente_id;
+
+-- Descobrindo a média de tempo de cada reserva
+SELECT cliente_id, AVG(DATEDIFF(data_fim, data_inicio)) AS media_dias_estadia
+	FROM alugueis
+    GROUP BY cliente_id
+    ORDER BY media_dias_estadia DESC;
+
+
+-- Descobrindo a média de tempo de cada reserva
+SELECT 
+    media_dias_estadia,
+    COUNT(*) AS numero_clientes,
+    (COUNT(*) / (SELECT COUNT(DISTINCT cliente_id) FROM alugueis) * 100) AS porcentagem_clientes
+FROM (
+    SELECT 
+        cliente_id, 
+        AVG(DATEDIFF(data_fim, data_inicio)) AS media_dias_estadia
+    FROM 
+        alugueis
+    GROUP BY 
+        cliente_id
+) AS medias
+GROUP BY 
+    media_dias_estadia
+ORDER BY 
+    media_dias_estadia DESC;
+
+-- A primeira informação que ela solicitou foi que buscássemos os 10 perfis com mais hospedagens ativas na plataforma. 
+SELECT p.nome AS nome_proprietario, COUNT(h.hospedagem_id) AS hospedagens_ativas
+	FROM hospedagens h
+    JOIN proprietarios p ON (h.proprietario_id = p.proprietario_id)
+	WHERE h.ativo = 1
+    GROUP BY nome_proprietario
+    ORDER BY hospedagens_ativas DESC
+    LIMIT 10;
+
+-- A primeira informação que ela solicitou foi que buscássemos os 10 perfis com mais hospedagens inativas na plataforma. 
+SELECT p.nome AS nome_proprietario, COUNT(h.hospedagem_id) AS hospedagens_inativas
+	FROM hospedagens h
+    JOIN proprietarios p ON (h.proprietario_id = p.proprietario_id)
+	WHERE h.ativo = 0
+    GROUP BY nome_proprietario
+    ORDER BY hospedagens_inativas DESC
+    LIMIT 10;
+
+-- meses com maior e menor demanda de aluguéis
+SELECT YEAR(data_inicio) AS ano, MONTH(data_inicio) AS mes, COUNT(*) AS total_alugueis
+	FROM alugueis
+    GROUP BY ano, mes
+    ORDER BY total_alugueis DESC;
