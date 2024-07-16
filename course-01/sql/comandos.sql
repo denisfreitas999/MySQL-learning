@@ -93,3 +93,8 @@ SELECT * FROM insight_places.enderecos;
 SELECT * FROM insight_places.hospedagens;
 SELECT * FROM insight_places.proprietarios;
 
+-- ########################################################
+-- $$$$$$$$$$$$$$$$$$$$$$$ ETAPA 03 $$$$$$$$$$$$$$$$$$$$$$$
+-- ########################################################
+
+-- Conhecendo o modelo físico das tabelas EER
