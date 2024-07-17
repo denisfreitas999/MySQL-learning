@@ -173,3 +173,79 @@ JOIN
     regioes_geograficas r ON r.estado = e.estado
 GROUP BY
     r.regiao; 
+
+-- ########################################################
+-- $$$$$$$$$$$$$$$$$$$$$$$ ETAPA 03 $$$$$$$$$$$$$$$$$$$$$$$
+-- ########################################################
+
+-- Criando uma procedure para capturar dados por região
+DELIMITER //
+DROP PROCEDURE IF EXISTS get_dados_por_regiao;
+
+CREATE PROCEDURE get_dados_por_regiao(regiao_nome VARCHAR(255))
+BEGIN
+    SELECT
+        YEAR(data_inicio) AS ano,
+        MONTH(data_inicio) AS mes,
+        COUNT(*) AS total_alugueis
+    FROM
+        alugueis a
+    JOIN
+        hospedagens h ON a.hospedagem_id = h.hospedagem_id   
+    JOIN
+        enderecos e ON h.endereco_id = e.endereco_id
+    JOIN
+        regioes_geograficas r ON e.estado = r.estado
+    WHERE
+        r.regiao = regiao_nome
+    GROUP BY
+        ano, mes
+    ORDER BY
+        ano, mes;
+END//
+DELIMITER ;
+
+-- Testando procedure
+CALL get_dados_por_regiao("Nordeste");
+
+-- Procedure para calcular a taxa de ocupação por ID do cliente
+
+USE insight_places;
+
+DROP PROCEDURE IF EXISTS calcular_taxa_ocupacao;
+
+DELIMITER //
+
+CREATE PROCEDURE calcular_taxa_ocupacao(ID VARCHAR(255))
+BEGIN
+    SELECT
+        p.nome AS Proprietario,
+        MIN(primeira_data) AS primeira_data,
+        SUM(total_dias) AS total_dias,
+        SUM(dias_ocupados) AS dias_ocupados,
+        ROUND((SUM(dias_ocupados) / SUM(total_dias)) * 100) AS taxa_ocupacao
+    FROM(
+        SELECT
+            hospedagem_id,
+            MIN(data_inicio) AS primeira_data,
+            SUM(DATEDIFF(data_fim, data_inicio)) AS dias_ocupados,
+            DATEDIFF(MAX(data_fim), MIN(data_inicio)) AS total_dias
+        FROM
+            alugueis
+        GROUP BY
+            hospedagem_id
+        ) tabela_taxa_ocupacao
+    JOIN
+        hospedagens h ON a.hospedagem_id = h.hospedagem_id
+    JOIN
+        enderecos e ON h.endereco_id = e.endereco_id
+    JOIN
+        regioes_geograficas r ON e.estado = r.estado
+    WHERE
+        r.regiao = "Sudeste"
+    GROUP BY
+        ano, mes
+    ORDER BY
+        ano, mes;
+END//
+DELIMITER ;
