@@ -249,3 +249,52 @@ BEGIN
         ano, mes;
 END//
 DELIMITER ;
+
+-- ########################################################
+-- $$$$$$$$$$$$$$$$$$$$$$$ ETAPA 04 $$$$$$$$$$$$$$$$$$$$$$$
+-- ########################################################
+
+-- Criando view de dados por região
+CREATE VIEW view_dados_regiao AS
+SELECT
+    r.regiao,
+    AVG(a.preco_total / DATEDIFF(a.data_fim, a.data_inicio)) AS media_preco_aluguel,
+    MAX(a.preco_total / DATEDIFF(a.data_fim, a.data_inicio)) AS max_preco_dia,
+    MIN(a.preco_total / DATEDIFF(a.data_fim, a.data_inicio)) AS min_preco_dia,
+    AVG(DATEDIFF(a.data_fim, a.data_inicio)) AS media_dias_aluguel
+FROM
+    alugueis a
+JOIN
+    hospedagens h ON a.hospedagem_id = h.hospedagem_id
+JOIN
+    enderecos e ON h.endereco_id = e.endereco_id
+JOIN
+    regioes_geograficas r ON r.estado = e.estado
+GROUP BY
+    r.regiao;
+
+-- Verificando dados da view_dados_regiao
+SELECT * FROM view_dados_regiao;
+
+-- Criando view de dados por região/tempo
+CREATE VIEW vw_ocupacao_por_regiao_tempo AS
+SELECT
+    r.regiao,
+    YEAR(data_inicio) AS ano,
+    MONTH(data_inicio) AS mes,
+    COUNT(*) AS total_alugueis
+FROM
+    alugueis a
+JOIN
+    hospedagens h ON a.hospedagem_id = h.hospedagem_id
+JOIN
+    enderecos e ON h.endereco_id = e.endereco_id
+JOIN
+    regioes_geograficas r ON r.estado = e.estado
+GROUP BY
+    r.regiao, YEAR(data_inicio), MONTH(data_inicio)
+ORDER BY
+    r.regiao, ano, mes;
+    
+-- Verificando dados da vw_ocupacao_por_regiao_tempo
+SELECT * FROM vw_ocupacao_por_regiao_tempo;
