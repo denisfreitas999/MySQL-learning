@@ -430,3 +430,283 @@ DELIMITER ;
 CALL inserir_aluguel_diaria_nomeCliente(10008, 'Maria Joaquina', 1,'2024-04-06', '2024-04-10', 100);
 CALL inserir_aluguel_diaria_nomeCliente(10008, 'Julia Pires', 1,'2024-04-06', '2024-04-10', 100);
 SELECT * FROM alugueis WHERE aluguel_id = 10008;
+
+-- ########################################################
+-- $$$$$$$$$$$$$$$$$$$$$$$ ETAPA 04 $$$$$$$$$$$$$$$$$$$$$$$
+-- ########################################################
+
+-- Usando o número de dias
+
+USE `insight_places`;
+DROP PROCEDURE IF EXISTS `inserir_aluguel_diaria_nomeCliente`;
+
+DELIMITER $$
+CREATE PROCEDURE `inserir_aluguel_diaria_nomeCliente` (
+	vAluguel VARCHAR(10), 
+    vClienteNome VARCHAR(150), 
+    vHospedagem VARCHAR(10),
+    vDataInicio DATE,
+    vDias INTEGER,
+    vPrecoUnitario DECIMAL(10,2)
+)
+BEGIN
+	DECLARE vDataFinal DATE;
+    DECLARE vPrecoTotal DECIMAL(10,2);
+    DECLARE vMensagem VARCHAR (255);
+    DECLARE vCliente VARCHAR (10);
+    DECLARE vNumeroClientes INTEGER DEFAULT 0;
+    DECLARE EXIT HANDLER FOR 1452
+	BEGIN
+		SET vMensagem = 'Problema de chave estrangeira associado a alguma entidade da base.';
+        SELECT vMensagem;
+	END;
+    SET vNumeroClientes = (SELECT COUNT(*) FROM clientes WHERE nome = vClienteNome);
+		CASE
+        WHEN vNumeroClientes = 0 THEN
+			SET vMensagem = 'Cliente inexistente na base, portanto não é possível incluí-lo.';
+			SELECT vMensagem;
+		WHEN vNumeroClientes = 1 THEN
+			SET vDataFinal = (SELECT vDataInicio + INTERVAL vDias DAY);
+			SET vPrecoTotal = vDias * vPrecoUnitario;
+			SELECT cliente_id INTO vCliente FROM clientes WHERE nome = vClienteNome;
+			INSERT INTO alugueis (
+					aluguel_id, 
+					cliente_id, 
+					hospedagem_id, 
+					data_inicio, 
+					data_fim, 
+					preco_total
+                ) 
+				VALUES (vAluguel, vCliente, vHospedagem, vDataInicio, vDataFinal, vPrecoTotal);
+			SET vMensagem = 'Aluguel incluído na base com sucesso.';
+			SELECT vMensagem;
+		WHEN vNumeroClientes > 1 THEN
+				SET vMensagem = 'Existem outros clientes com o mesmo nome, portanto a inserção do aluguel deste cliente por este método não é possível.';
+			SELECT vMensagem;
+		END CASE;
+END$$
+
+DELIMITER ;
+
+CALL inserir_aluguel_diaria_nomeCliente(10008, 'Luana Moura', 1,'2024-04-06', 5, 100);
+SELECT * FROM alugueis WHERE aluguel_id = 10008;
+
+-- Utilizando o WHILE LOOP
+
+USE `insight_places`;
+DROP PROCEDURE IF EXISTS `inserir_aluguel_diaria_nomeCliente`;
+
+DELIMITER $$
+CREATE PROCEDURE `inserir_aluguel_diaria_nomeCliente` (
+	vAluguel VARCHAR(10), 
+    vClienteNome VARCHAR(150), 
+    vHospedagem VARCHAR(10),
+    vDataInicio DATE,
+    vDias INTEGER,
+    vPrecoUnitario DECIMAL(10,2)
+)
+BEGIN
+	DECLARE vDataFinal DATE;
+    DECLARE vPrecoTotal DECIMAL(10,2);
+    DECLARE vMensagem VARCHAR (255);
+    DECLARE vCliente VARCHAR (10);
+    DECLARE vNumeroClientes INTEGER DEFAULT 0;
+    DECLARE vContador INTEGER DEFAULT 1;
+    DECLARE vDiaSemana INTEGER;
+    DECLARE EXIT HANDLER FOR 1452
+	BEGIN
+		SET vMensagem = 'Problema de chave estrangeira associado a alguma entidade da base.';
+        SELECT vMensagem;
+	END;
+    SET vNumeroClientes = (SELECT COUNT(*) FROM clientes WHERE nome = vClienteNome);
+		CASE
+        WHEN vNumeroClientes = 0 THEN
+			SET vMensagem = 'Cliente inexistente na base, portanto não é possível incluí-lo.';
+			SELECT vMensagem;
+		WHEN vNumeroClientes = 1 THEN
+			SET vDataFinal = vDataInicio;
+			WHILE vContador < vDias
+			DO
+				SET vDiaSemana = (SELECT DAYOFWEEK(STR_TO_DATE(vDataFinal, '%Y-%m-%d')));
+                IF (vDiaSemana <> 1 AND vDiaSemana <> 7) THEN
+					SET vContador = vContador + 1;
+                END IF;
+                SET vDataFinal = (SELECT vDataFinal + INTERVAL 1 DAY);
+            END WHILE;
+			SET vPrecoTotal = vDias * vPrecoUnitario;
+			SELECT cliente_id INTO vCliente FROM clientes WHERE nome = vClienteNome;
+			INSERT INTO alugueis (
+					aluguel_id, 
+					cliente_id, 
+					hospedagem_id, 
+					data_inicio, 
+					data_fim, 
+					preco_total
+                ) 
+				VALUES (vAluguel, vCliente, vHospedagem, vDataInicio, vDataFinal, vPrecoTotal);
+			SET vMensagem = 'Aluguel incluído na base com sucesso.';
+			SELECT vMensagem;
+		WHEN vNumeroClientes > 1 THEN
+				SET vMensagem = 'Existem outros clientes com o mesmo nome, portanto a inserção do aluguel deste cliente por este método não é possível.';
+			SELECT vMensagem;
+		END CASE;
+END$$
+
+DELIMITER ;
+
+-- R: 2024-04-24
+CALL inserir_aluguel_diaria_nomeCliente(10009, 'Luana Moura', 1,'2024-04-18', 5, 100);
+SELECT * FROM alugueis WHERE aluguel_id = 10009;
+
+
+-- SUBPROCEDURE
+USE `insight_places`;
+DROP procedure IF EXISTS `calcula_data_final`;
+
+DELIMITER $$
+USE `insight_places`$$
+CREATE PROCEDURE `calcula_data_final` (vDataInicio DATE, INOUT vDataFinal DATE, vDias INTEGER)
+BEGIN
+	DECLARE vContador INTEGER;
+    DECLARE vDiaSemana INTEGER;
+	SET vContador = 1;
+	SET vDataFinal = vDataInicio;
+	WHILE vContador < vDias
+	DO
+		SET vDiaSemana = (SELECT DAYOFWEEK(STR_TO_DATE(vDataFinal, '%Y-%m-%d')));
+		IF (vDiaSemana <> 1 AND vDiaSemana <> 7) THEN
+			SET vContador = vContador + 1;
+		END IF;
+		SET vDataFinal = (SELECT vDataFinal + INTERVAL 1 DAY);
+	END WHILE;
+END$$
+
+DELIMITER ;
+
+-- Chamando a subprocedure na procedure principal
+USE `insight_places`;
+DROP PROCEDURE IF EXISTS `inserir_aluguel_diaria_nomeCliente`;
+
+DELIMITER $$
+CREATE PROCEDURE `inserir_aluguel_diaria_nomeCliente` (
+	vAluguel VARCHAR(10), 
+    vClienteNome VARCHAR(150), 
+    vHospedagem VARCHAR(10),
+    vDataInicio DATE,
+    vDias INTEGER,
+    vPrecoUnitario DECIMAL(10,2)
+)
+BEGIN
+	DECLARE vDataFinal DATE;
+    DECLARE vPrecoTotal DECIMAL(10,2);
+    DECLARE vMensagem VARCHAR (255);
+    DECLARE vCliente VARCHAR (10);
+    DECLARE vNumeroClientes INTEGER DEFAULT 0;
+    DECLARE vContador INTEGER DEFAULT 1;
+    DECLARE vDiaSemana INTEGER;
+    DECLARE EXIT HANDLER FOR 1452
+	BEGIN
+		SET vMensagem = 'Problema de chave estrangeira associado a alguma entidade da base.';
+        SELECT vMensagem;
+	END;
+    SET vNumeroClientes = (SELECT COUNT(*) FROM clientes WHERE nome = vClienteNome);
+		CASE
+        WHEN vNumeroClientes = 0 THEN
+			SET vMensagem = 'Cliente inexistente na base, portanto não é possível incluí-lo.';
+			SELECT vMensagem;
+		WHEN vNumeroClientes = 1 THEN
+			CALL calcula_data_final(vDataInicio, vDataFinal, vDias);
+			SET vPrecoTotal = vDias * vPrecoUnitario;
+			SELECT cliente_id INTO vCliente FROM clientes WHERE nome = vClienteNome;
+			INSERT INTO alugueis (
+					aluguel_id, 
+					cliente_id, 
+					hospedagem_id, 
+					data_inicio, 
+					data_fim, 
+					preco_total
+                ) 
+				VALUES (vAluguel, vCliente, vHospedagem, vDataInicio, vDataFinal, vPrecoTotal);
+			SET vMensagem = 'Aluguel incluído na base com sucesso.';
+			SELECT vMensagem;
+		WHEN vNumeroClientes > 1 THEN
+				SET vMensagem = 'Existem outros clientes com o mesmo nome, portanto a inserção do aluguel deste cliente por este método não é possível.';
+			SELECT vMensagem;
+		END CASE;
+END$$
+
+DELIMITER ;
+
+-- R: 2024-04-24
+CALL inserir_aluguel_diaria_nomeCliente(10010, 'Luana Moura', 1,'2024-04-28', 5, 100);
+SELECT * FROM alugueis WHERE aluguel_id = 10010;
+
+-- Modificando procedure para autoincrementar o ID
+SELECT * FROM alugueis;
+SELECT aluguel_id, CAST(aluguel_id AS UNSIGNED) FROM alugueis;
+SELECT MAX(aluguel_id), MAX(CAST(aluguel_id AS UNSIGNED)) FROM alugueis;
+SELECT * FROM alugueis ORDER BY CAST(aluguel_id AS UNSIGNED);
+
+-- CONVERTENDO A COLUNA PARA INTEIRO ENCONTRANDO O VALOR MÁXIMO E DEPOIS ACRESCENTANDO 1 PARA
+-- SE TORNAR O PRÓXIMO ID E DEPOIS RETORNANDO PARA STRING
+
+SELECT CAST(MAX(CAST(aluguel_id AS UNSIGNED)) + 1 AS CHAR) FROM alugueis;
+
+
+USE `insight_places`;
+DROP PROCEDURE IF EXISTS `inserir_aluguel_diaria_nome_cliente_auto_incremento`;
+
+DELIMITER $$
+CREATE PROCEDURE `inserir_aluguel_diaria_nome_cliente_auto_incremento` (
+    vClienteNome VARCHAR(150), 
+    vHospedagem VARCHAR(10),
+    vDataInicio DATE,
+    vDias INTEGER,
+    vPrecoUnitario DECIMAL(10,2)
+)
+BEGIN
+	DECLARE vDataFinal DATE;
+    DECLARE vPrecoTotal DECIMAL (10,2);
+    DECLARE vMensagem VARCHAR (255);
+    DECLARE vCliente VARCHAR (10);
+    DECLARE vNumeroClientes INTEGER DEFAULT 0;
+    DECLARE vContador INTEGER DEFAULT 1;
+    DECLARE vDiaSemana INTEGER;
+    DECLARE vAluguel VARCHAR (10);
+    DECLARE EXIT HANDLER FOR 1452
+	BEGIN
+		SET vMensagem = 'Problema de chave estrangeira associado a alguma entidade da base.';
+        SELECT vMensagem;
+	END;
+    SET vNumeroClientes = (SELECT COUNT(*) FROM clientes WHERE nome = vClienteNome);
+		CASE
+        WHEN vNumeroClientes = 0 THEN
+			SET vMensagem = 'Cliente inexistente na base, portanto não é possível incluí-lo.';
+			SELECT vMensagem;
+		WHEN vNumeroClientes = 1 THEN
+			CALL calcula_data_final(vDataInicio, vDataFinal, vDias);
+			SET vPrecoTotal = vDias * vPrecoUnitario;
+			SELECT cliente_id INTO vCliente FROM clientes WHERE nome = vClienteNome;
+            SET vAluguel = (SELECT CAST(MAX(CAST(aluguel_id AS UNSIGNED)) + 1 AS CHAR) FROM alugueis);
+			INSERT INTO alugueis (
+					aluguel_id, 
+					cliente_id, 
+					hospedagem_id, 
+					data_inicio, 
+					data_fim, 
+					preco_total
+                ) 
+				VALUES (vAluguel, vCliente, vHospedagem, vDataInicio, vDataFinal, vPrecoTotal);
+			SET vMensagem = CONCAT('Aluguel incluído na base com sucesso. ID: ', vAluguel);
+			SELECT vMensagem;
+		WHEN vNumeroClientes > 1 THEN
+				SET vMensagem = 'Existem outros clientes com o mesmo nome, portanto a inserção do aluguel deste cliente por este método não é possível.';
+			SELECT vMensagem;
+		END CASE;
+END$$
+
+DELIMITER ;
+
+-- R: 2024-04-24
+CALL inserir_aluguel_diaria_nome_cliente_auto_incremento('Luana Moura', 1,'2024-05-20', 5, 100);
+SELECT * FROM alugueis WHERE aluguel_id = 10011;
