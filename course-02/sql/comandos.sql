@@ -710,3 +710,73 @@ DELIMITER ;
 -- R: 2024-04-24
 CALL inserir_aluguel_diaria_nome_cliente_auto_incremento('Luana Moura', 1,'2024-05-20', 5, 100);
 SELECT * FROM alugueis WHERE aluguel_id = 10011;
+
+-- ########################################################
+-- $$$$$$$$$$$$$$$$$$$$$$$ ETAPA 05 $$$$$$$$$$$$$$$$$$$$$$$
+-- ########################################################
+
+-- Criando procedure 
+USE `insight_places`;
+DROP procedure IF EXISTS `incluir_usuarios_lista`;
+
+DELIMITER $$
+USE `insight_places`$$
+CREATE PROCEDURE `incluir_usuarios_lista` (lista VARCHAR (255))
+BEGIN
+DECLARE nome VARCHAR(255);
+    DECLARE restante VARCHAR(255);
+    DECLARE pos INTEGER;
+    SET restante = lista;
+    WHILE INSTR(restante,',') > 0 DO
+        SET pos = INSTR(restante,',');
+        SET nome = LEFT(restante, pos -1);
+        INSERT INTO tempo_nomes VALUES(nome);
+        SET restante = SUBSTRING(restante, pos + 1);
+    END WHILE;
+    IF TRIM(restante) <> '' THEN
+        INSERT INTO tempo_nomes VALUES(TRIM(restante));
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- Criando tabela temporaria e adicionando nomes
+DROP TEMPORARY TABLE IF EXISTS tempo_nomes;
+CREATE TEMPORARY TABLE tempo_nomes(nome VARCHAR(255));
+CALL incluir_usuarios_lista('Luana Moura,Enrico Correia,Paulo Vieira,Marina Nunes');
+SELECT * FROM tempo_nomes
+
+
+-- Aplicando a lógica para adicionar múltiplos clientes com o usodos cursores
+USE `insight_places`;
+DROP procedure IF EXISTS `inserir_novos_alugueis`;
+
+DELIMITER $$
+USE `insight_places`$$
+CREATE PROCEDURE `inserir_novos_alugueis` (lista VARCHAR(255), vHospedagem VARCHAR(10), vDataInicio DATE, vDias INTEGER, vPrecoUnitario DECIMAL(10,2))
+BEGIN
+    DECLARE vClienteNome VARCHAR(150);
+    DECLARE fimCursor INTEGER DEFAULT 0;
+    DECLARE vnome VARCHAR(255);
+    DECLARE cursor1 CURSOR FOR SELECT nome FROM tempo_nomes;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET fimCursor = 1;
+    DROP TEMPORARY TABLE IF EXISTS tempo_nomes;
+    CREATE TEMPORARY TABLE tempo_nomes (nome VARCHAR(255));
+    CALL incluir_usuarios_lista(lista);
+    OPEN cursor1;
+    FETCH cursor1 INTO vnome;
+    WHILE fimCursor = 0 DO
+        SET vClienteNome = vnome;
+        CALL inserir_aluguel_diaria_nome_cliente_auto_incremento (vClienteNome, vHospedagem, vDataInicio, vDias, vPrecoUnitario);
+        FETCH cursor1 INTO vnome;
+    END WHILE;
+    CLOSE cursor1;
+    DROP TEMPORARY TABLE IF EXISTS tempo_nomes;
+END$$
+
+DELIMITER ;
+SELECT * FROM clientes;
+CALL inserir_novos_alugueis('Daniela Carvalho,Benjamin Rocha,Maysa Moraes,Mariana Araújo', '8635', '2023-06-03', 7, 45);
+
+SELECT * FROM alugueis WHERE hospedagem_id = 8635;
+
