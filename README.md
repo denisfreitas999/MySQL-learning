@@ -2,6 +2,8 @@
 
 #### Course 01 - MySQL: Conhecendo a Ferramenta (01 - 05) 
 #### Course 02 - MySQL: Executando Procedures (06 - 10) 
+#### Course 03 - MySQL: Trabalhando com Funções (11 - 15)
+#### Course 04 - MySQL: Aplicado para Análise de Dados (16 - 20)
 
 ## Tecnologias Envolvidas
 <div style="display: inline_block">
@@ -20,6 +22,16 @@
 8. [Utilizando SELECT INTO e Condicionais](#08-utilizando-select-into-e-condicionais)
 9. [Cálculos com Data e Subprocedures](#09-cálculos-com-data-e-subprocedures)
 10. [Gerenciamento de Múltiplos Clientes e Cursores](#10-gerenciamento-de-múltiplos-clientes-e-cusores)
+11. [Criando Banco de Dados e Consultas Básicas](#11-criando-banco-de-dados-e-consultas-básicas)
+12. [Funções de Agregação e Manipulação de Dados](#12-funções-de-agregação-e-manipulação-de-dados)
+13. [Criação e Execução de Funções](#13-criação-e-execução-de-funções)
+14. [Chamando Funções e Criando Triggers](#14-chamando-funções-e-criando-triggers)
+15. [Tratamento de Erros e Alterações em Funções](#15-tratamento-de-erros-e-alterações-em-funções)
+16. [Carregamento e Exploração de Dados](#16-carregamento-e-exploração-de-dados)
+17. [Modificação e Análise de Métricas](#17-modificação-e-análise-de-métricas)
+18. [Exploração e Procedimentos Avançados](#18-exploração-e-procedimentos-avançados)
+19. [Criação e Consulta de Views](#19-criação-e-consulta-de-views)
+20. [Análise e Relatórios de Projeto](#20-análise-e-relatórios-de-projeto)
 
 
 ## 01. Projeto Insight Places e Instalação
@@ -113,3 +125,87 @@ Nesta etapa, foco no gerenciamento de múltiplos clientes e uso de cursores:
 - **Utilizando a estrutura de cursor para iterar sobre os registros da tabela temporária**: Uso de cursores para iteração.
 - **Compreendendo o funcionamento do cursor no MySQL**: Funcionamento de cursores.
 - **Implementando a inclusão de aluguéis baseando-se nos dados dos clientes armazenados na tabela temporária**: Inclusão baseada em dados de tabela temporária.
+
+## 11. Criando Banco de Dados e Consultas Básicas
+
+Nesta etapa, o foco está na criação e execução básica:
+
+- **Criando um banco de dados e tabelas no MySQL**: Criação inicial de banco e tabelas.
+- **Realizando a importação de dados**: Importação de dados para as tabelas.
+- **Executando consultas com a função de agregação COUNT**: Uso da função COUNT para agregação de dados.
+
+## 12. Funções de Agregação e Manipulação de Dados
+
+Aqui, exploramos funções de agregação e manipulação:
+
+- **Conhecendo outras funções de agregação**: Exploração de funções como SUM, AVG, MAX, MIN.
+- **Utilizando as funções para manipular strings**: Manipulação de strings com funções como CONCAT, LENGTH, UPPER, LOWER.
+- **Trabalhando com as funções de datas**: Manipulação de datas com funções como NOW, DATE_FORMAT, DATE_ADD.
+- **Formatando dados com as funções numéricas**: Formatação de dados numéricos com ROUND, CEIL, FLOOR.
+- **Executando consultas com a função condicional CASE**: Uso da função CASE para condições dentro de consultas.
+
+## 13. Criação e Execução de Funções
+
+Nesta etapa, foco na criação e uso de funções:
+
+- **Entendendo como criar funções**: Introdução à criação de funções no MySQL.
+- **Realizando a declaração de variáveis**: Declaração e uso de variáveis dentro de funções.
+- **Utilizando parâmetros ao chamar uma função**: Passagem de parâmetros para funções.
+- **Executando um retorno composto**: Retorno de múltiplos valores de uma função.
+
+## 14. Chamando Funções e Criando Triggers
+
+Aqui, exploro a integração de funções e triggers:
+
+- **Chamando uma função em outra função**: Uso de funções dentro de outras funções.
+- **Criando uma trigger**: Criação de triggers para automação de tarefas.
+- **Executando uma função a partir de uma trigger**: Invocação de funções através de triggers.
+
+## 15. Tratamento de Erros e Alterações em Funções
+
+Finalizo com a gestão de erros e alterações:
+
+- **Conhecendo o tratamento de erros em uma função**: Manejo de erros e exceções dentro de funções.
+- **Entendendo como uma função é alterada no MySQL**: Modificação de funções existentes.
+- **Sabendo sobre os cuidados ao excluir uma função**: Precauções e considerações ao remover funções.
+
+## 16. Carregamento e Exploração de Dados
+
+Nesta etapa, foco no carregamento e na exploração inicial dos dados:
+
+- **Carregando os dados com Script SQL**: Importação de dados utilizando scripts SQL.
+- **Carregando os dados com Table Data Import Wizard**: Utilização da ferramenta Table Data Import Wizard para carregamento de dados.
+- **Explorando os dados com LIMIT e COUNT**: Uso dos comandos LIMIT e COUNT para explorar e sumarizar dados.
+- **Buscando o menor e maior valor com MIN e MAX**: Identificação dos valores mínimos e máximos em conjuntos de dados.
+- **Calculando a diferença de datas com DATEDIFF**: Cálculo da diferença entre datas utilizando a função DATEDIFF.
+- **Entregando a taxa de ocupação utilizando GROUP BY e ROUND**: Cálculo da taxa de ocupação com agrupamento e arredondamento.
+
+## 17. Modificação e Análise de Métricas
+
+Aqui, exploro a modificação e análise de métricas:
+
+- **Modificando a métrica de taxa de ocupação utilizando JOIN, GROUP BY e subconsulta**: Ajuste da métrica de taxa de ocupação com JOIN e subconsultas.
+- **Transformando os dados para focar em meses e anos utilizando as funções YEAR, MONTH e COUNT**: Análise de dados por mês e ano com funções YEAR e MONTH.
+- **Criando uma análise com os dados separados por região e estado, utilizando as funções AVG, MAX e MIN**: Análise regional e estadual usando funções AVG, MAX e MIN.
+
+## 18. Exploração e Procedimentos Avançados
+
+Nesta etapa, abordo procedimentos e análise avançada:
+
+- **Explorando os dados por região e por período de tempo, combinando JOIN, WHERE e GROUP BY**: Análise de dados com JOIN, WHERE e GROUP BY para regiões e períodos de tempo.
+- **Criando PROCEDURES para explorar os dados de cada proprietário, e também por região e por período de tempo**: Desenvolvimento de PROCEDURES para análise detalhada por proprietário e região.
+
+## 19. Criação e Consulta de Views
+
+Foco na criação e uso de Views:
+
+- **Criando VIEWs para os contextos de proprietários e regiões**: Criação de VIEWs para análise de dados de proprietários e regiões.
+- **Realizando consultas em VIEWs para trazer informações específicas**: Execução de consultas em VIEWs para obter dados específicos.
+
+## 20. Análise e Relatórios de Projeto
+
+Finalizo com a análise e relatório do projeto:
+
+- **Analisando as possibilidades de entrega de projeto**: Avaliação das possibilidades para entrega do projeto.
+- **Conhecendo como nossas VIEWs podem ser utilizadas**: Entendimento das aplicações das VIEWs criadas.
+- **Desenvolvendo um relatório de análise de dados**: Criação de um relatório com base na análise de dados realizada.
