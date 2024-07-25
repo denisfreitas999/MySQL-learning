@@ -234,3 +234,105 @@ DELIMITER ;
 
 -- Exemplo de chamada da função
 SELECT InfoAluguel(2);
+
+
+-- ############################################
+-- ################## Etapa 04 ################
+-- ############################################
+
+-- Categorizando clientes por desconto
+
+DELIMITER $$
+CREATE FUNCTION CalcularDescontoPorDias(AluguelID INT)
+RETURNS INT DETERMINISTIC
+
+BEGIN
+DECLARE Desconto INT;
+SELECT
+        CASE
+                WHEN DATEDIFF(data_fim, data_inicio) BETWEEN 4 AND 6 THEN 5
+                WHEN DATEDIFF(data_fim, data_inicio) BETWEEN 7 AND 9 THEN 10
+                WHEN DATEDIFF(data_fim, data_inicio) >= 10 THEN 15
+                ELSE 0
+        END
+        INTO Desconto
+FROM alugueis
+WHERE aluguel_id = AluguelID;
+RETURN Desconto;
+END$$
+
+DELIMITER ;
+
+SELECT CalcularDescontoPorDias(4);
+
+
+DROP FUNCTION IF EXISTS CalcularValorFinalComDesconto;
+DELIMITER $$
+
+CREATE FUNCTION CalcularValorFinalComDesconto(AluguelID INT)
+RETURNS DECIMAL(10,2) DETERMINISTIC
+BEGIN
+    DECLARE ValorTotal DECIMAL(10,2);
+    DECLARE Desconto INT;
+    DECLARE ValorFinal DECIMAL(10,2);
+
+    -- Obter o valor total do aluguel
+    SELECT preco_total INTO ValorTotal
+    FROM alugueis
+    WHERE aluguel_id = AluguelID;
+
+    -- Calcular o desconto com base no ID do aluguel
+    SET Desconto = CalcularDescontoPorDias(AluguelID);
+
+    -- Calcular o valor final após desconto
+    SET ValorFinal = ValorTotal - (ValorTotal * Desconto / 100);
+
+    RETURN ValorFinal;
+END$$
+
+DELIMITER ;
+
+-- Exemplo de chamada da função com um argumento
+SELECT CalcularValorFinalComDesconto(1);
+
+CREATE TABLE resumo_aluguel (
+    aluguel_id VARCHAR(255),
+    cliente_id VARCHAR(255),
+    valor_total DECIMAL(10,2),
+    desconto_aplicado DECIMAL(10,2),
+    valor_final DECIMAL(10,2),
+     PRIMARY KEY (aluguel_id, cliente_id);
+    FOREIGN KEY (aluguel_id) REFERENCES alugueis(aluguel_id),
+    FOREIGN KEY (cliente_id) REFERENCES clientes(cliente_id)
+);
+
+-- Criando a Trigger
+DROP TRIGGER IF EXISTS AtualizarResumoAluguel;
+
+DELIMITER $$
+
+CREATE TRIGGER AtualizarResumoAluguel
+AFTER INSERT ON alugueis
+FOR EACH ROW
+BEGIN
+    DECLARE Desconto INT;
+    DECLARE ValorFinal DECIMAL(10,2);
+
+    -- Calcular desconto e valor final
+    SET Desconto = CalcularDescontoPorDias(NEW.aluguel_id);
+    SET ValorFinal = CalcularValorFinalComDesconto(NEW.aluguel_id);
+
+    -- Inserir resumo do aluguel na tabela resumo_aluguel
+    INSERT INTO resumo_aluguel (aluguel_id, cliente_id, valor_total, desconto_aplicado, valor_final)
+    VALUES (NEW.aluguel_id, NEW.cliente_id, NEW.preco_total, Desconto, ValorFinal);
+
+END$$
+
+DELIMITER ;
+
+SELECT * FROM resumo_aluguel;
+
+INSERT INTO alugueis (aluguel_id, cliente_id, hospedagem_id, data_inicio, data_fim, preco_total)
+VALUES (10020, 42, 15, '2024-01-01', '2024-01-08', 3000.00);
+
+SELECT * FROM resumo_aluguel;
