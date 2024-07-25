@@ -159,3 +159,78 @@ FROM avaliacoes;
 -- ############################################
 -- ################## Etapa 03 ################
 -- ############################################
+SELECT ROUND(AVG(NOTA), 2) MediaNotas FROM avaliacoes;
+
+DELIMITER $$
+CREATE FUNCTION MediaAvalicoes()
+RETURNS FLOAT DETERMINISTIC
+BEGIN
+DECLARE media FLOAT;
+
+SELECT ROUND (AVG (nota), 2) MediaNotas 
+INTO media
+FROM avaliacoes;
+
+RETURN media;
+END$$
+
+DELIMITER ;
+
+SELECT MediaAvalicoes();
+
+
+DROP FUNCTION IF EXISTS FormatandoCPF;
+
+DELIMITER $$
+
+CREATE FUNCTION FormatandoCPF (ClienteID INT)
+RETURNS VARCHAR(50) DETERMINISTIC
+BEGIN
+    DECLARE NovoCPF VARCHAR(50);
+
+    SELECT CONCAT(
+        SUBSTRING(REPLACE(REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', ''), '/', ''), 1, 3), '.', 
+        SUBSTRING(REPLACE(REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', ''), '/', ''), 4, 3), '.', 
+        SUBSTRING(REPLACE(REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', ''), '/', ''), 7, 3), '-', 
+        SUBSTRING(REPLACE(REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', ''), '/', ''), 10, 2)
+    )
+    INTO NovoCPF
+    FROM clientes
+    WHERE cliente_id = ClienteID;
+
+    RETURN NovoCPF;
+END$$
+
+DELIMITER ;
+
+-- Exemplo de chamada da função
+SELECT TRIM(nome) AS Nome, FormatandoCPF(1) AS CPF FROM clientes WHERE cliente_id = 1;
+
+DELIMITER $$
+
+CREATE FUNCTION InfoAluguel(IdAluguel INT)
+RETURNS VARCHAR(255) DETERMINISTIC
+BEGIN
+    DECLARE NomeCliente VARCHAR(100);
+    DECLARE PrecoTotal DECIMAL(10,2);
+    DECLARE Dias INT;
+    DECLARE ValorDiaria DECIMAL(10,2);
+    DECLARE Resultado VARCHAR(255);
+
+    SELECT c.nome, a.preco_total, DATEDIFF(a.data_fim, a.data_inicio)
+    INTO NomeCliente, PrecoTotal, Dias
+    FROM alugueis a
+    JOIN clientes c ON a.cliente_id = c.cliente_id
+    WHERE a.aluguel_id = IdAluguel;
+
+    SET ValorDiaria = PrecoTotal / Dias;
+
+    SET Resultado = CONCAT('Nome: ', NomeCliente, ', Valor Diário: R$ ', FORMAT(ValorDiaria, 2));
+
+    RETURN Resultado;
+END$$
+
+DELIMITER ;
+
+-- Exemplo de chamada da função
+SELECT InfoAluguel(2);
