@@ -336,3 +336,33 @@ INSERT INTO alugueis (aluguel_id, cliente_id, hospedagem_id, data_inicio, data_f
 VALUES (10020, 42, 15, '2024-01-01', '2024-01-08', 3000.00);
 
 SELECT * FROM resumo_aluguel;
+
+
+-- ############################################
+-- ################## Etapa 05 ################
+-- ############################################
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `InfoAluguel`(IdAluguel INT) RETURNS varchar(255) CHARSET utf8mb4
+DETERMINISTIC
+BEGIN
+
+  DECLARE NomeCliente VARCHAR(100);
+  DECLARE PrecoTotal DECIMAL(10,2);
+  DECLARE Dias INT;
+  DECLARE ValorDiaria DECIMAL(10,2);
+  DECLARE Resultado VARCHAR(255);
+
+  SELECT c.nome, a.preco_total, DATEDIFF(data_fim, data_inicio)
+  INTO NomeCliente, PrecoTotal, Dias
+  FROM alugueis a
+  JOIN clientes c
+  ON a.cliente_id = c.cliente_id
+  WHERE a.aluguel_id = IdAluguel;
+
+  SET ValorDiaria = PrecoTotal / Dias;
+  SET Resultado = CONCAT('Nome: ', NomeCliente, ', Valor Diário: R$', FORMAT(ValorDiaria,2));
+    
+  RETURN Resultado;
+END
+
+DROP FUNCTION IF EXISTS CalcularValorFinalComDesconto;
